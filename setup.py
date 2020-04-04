@@ -4,7 +4,7 @@ with open("README.md", "r") as fp:
     long_description = fp.read()
 
 setup(
-    name="statement_dl",
+    name="statement-dl",
     version="2020.04.04",
     description="Automatic download of banking/broker documents from flatex",
     long_description=long_description,
