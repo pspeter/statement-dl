@@ -13,16 +13,16 @@ setup(
     author="Peter Schmidbauer",
     author_email="peter.schmidb@gmail.com",
     license="MIT",
-    packges=["statement_dl"],
+    packages=["statement_dl"],
     install_requires=["selenium>=3.141.0,<4.0.0"],
     python_requires=">=3.6",
     zip_safe=False,
     entry_points={"console_scripts": ["statement_dl = statement_dl:main"]},
-    classifiers=(
+    classifiers=[
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
-    ),
+    ],
 )
