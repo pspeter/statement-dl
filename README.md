@@ -32,7 +32,7 @@ its dependencies into your global python environment, I recommended using
 To start off, you probably want to download all your previous documents. To download
 them from flatex, use the command 
 
-`>>> statement_dl <destination dir> --all`
+`>>> statement_dl <destination dir> --all-files`
 
 To see all options, type
 
