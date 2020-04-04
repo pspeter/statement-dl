@@ -1,4 +1,4 @@
-# statement_dl
+# statement-dl
 
 This tool is built to be able to automatically download all documents from 
 online banks and brokes that don't offer batch download options themselves, 
@@ -19,7 +19,7 @@ https://www.mozilla.org/de/.
 You can download geckodriver from Github: 
 https://github.com/mozilla/geckodriver/releases.
 
-Then, download `statement_dl` using pip: `pip install -U statement_dl` or simply
+Then, download `statement-dl` using pip: `pip install -U statement-dl` or simply
 clone the repository and install from source using 
 `pip install -U <repository-path>`. If you don't want to install the tool and 
 its dependencies into your global python environment, I recommended using 
