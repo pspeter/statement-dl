@@ -40,7 +40,8 @@ To see all options, type
 
 To get all options for a specific broker/bank, type e.g.
 
-```>>> statement_dl flatex --help
+```
+>>> statement_dl flatex --help
 usage: statement_dl flatex [-h] [-f DATE] [-t DATE] [-g PATH] [-u USERNAME] [-p PASSWORD] [--wsl] [--headless] [-a] [--de] dest
 
 positional arguments:
