@@ -121,6 +121,7 @@ def _get_driver(
     options = Options()
     options.headless = headless
 
+    geckodriver = geckodriver if geckodriver else "geckodriver"
     driver = webdriver.Firefox(fp, options=options, executable_path=geckodriver)
     return driver
 
