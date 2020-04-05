@@ -223,7 +223,7 @@ def _download_pdfs(
             time.sleep(0.1)
             url = driver.execute_script("return window.pdf_download_url")
 
-        dest_dir = dest / re.sub(r"_+", "_", re.sub(r"\W", "_", doc_type)).lower()
+        dest_dir = dest / re.sub(r"_+", "_", re.sub(r"\W", "_", doc_type))
 
         downloaded_file_name = unquote(url).split("/")[-1]
         if keep_filenames:
