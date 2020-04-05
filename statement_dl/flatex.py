@@ -229,14 +229,15 @@ def _download_pdfs(
         if keep_filenames:
             file_name = downloaded_file_name
         else:
+            doc_id = re.search(r"(\d+).pdf", downloaded_file_name).group(1)
             # remove date from back of title
             file_name = re.sub(r" vom \d\d\.\d\d.\d\d\d\d$", "", raw_doc_title)
             # replace special chars
             file_name = re.sub(r"\W", "_", file_name)
             file_name = re.sub(r"_+", "_", file_name)
             file_name = file_name.strip("_")
-            # prepend date
-            file_name = f"{ymd_date_string}_{file_name}.pdf"
+            # prepend date, append doc id
+            file_name = f"{ymd_date_string}_{file_name}_{doc_id}.pdf"
 
         dest_file = dest_dir / file_name
 
