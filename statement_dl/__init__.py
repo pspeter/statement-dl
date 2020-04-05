@@ -1,8 +1,6 @@
 from argparse import ArgumentParser
-from datetime import datetime, date
-from pathlib import Path
 
-from statement_dl.flatex import download_documents as download_flatex_documents
+from .flatex import download_documents_from_args as flatex_dl
 
 _prog_description = """\
 statement_dl can be used to download files from online (mainly Austrian) brokers and 
@@ -10,18 +8,17 @@ banks. Call 'statement_dl <broker/bank> -h' for more help.
 """
 
 
-def _str_to_date(date_string: str) -> date:
-    if date_string == "today":
-        return date.today()
-    return datetime.strptime(date_string, "%Y-%m-%d").date()
-
-
 def main():
-    parser = ArgumentParser(description=_prog_description)
+    parser = ArgumentParser(prog="statement_dl", description=_prog_description)
 
-    subparser = parser.add_subparsers()
+    subparser = parser.add_subparsers(title="Available brokers/banks")
 
     download_parent_parser = ArgumentParser(add_help=False)
+    download_parent_parser.add_argument(
+        "dest",
+        type=str,
+        help="Directory in which your downloaded files will be saved",
+    )
     download_parent_parser.add_argument(
         "-f",
         "--from-date",
@@ -40,10 +37,6 @@ def main():
         help="Date until which you want to download your files"
         " (in the format YYYY-MM-DD or 'today'). Defaults to 'today'",
     )
-    download_parent_parser.add_argument(
-        "dest", type=str, help="Directory in which your downloaded files will be saved"
-    )
-
     download_parent_parser.add_argument(
         "-g",
         "--geckodriver",
@@ -79,6 +72,7 @@ def main():
     )
 
     flatex_parser = subparser.add_parser("flatex", parents=[download_parent_parser])
+    flatex_parser.set_defaults(func=flatex_dl)
     flatex_parser.add_argument(
         "--de",
         action="store_true",
@@ -86,15 +80,8 @@ def main():
     )
 
     args = parser.parse_args()
-    download_flatex_documents(
-        Path(args.dest),
-        _str_to_date(args.from_date),
-        _str_to_date(args.to_date),
-        args.geckodriver,
-        args.username,
-        args.password,
-        args.all_files,
-        args.headless,
-        args.de,
-        args.wsl,
-    )
+
+    if "func" in args:
+        args.func(args)
+    else:
+        parser.print_usage()

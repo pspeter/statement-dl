@@ -1,3 +1,5 @@
+from argparse import Namespace
+
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
@@ -33,6 +35,21 @@ onfinished = """
        window.pdf_download_url = a;
     };
 """
+
+
+def download_documents_from_args(args: Namespace):
+    download_documents(
+        Path(args.dest),
+        _str_to_date(args.from_date),
+        _str_to_date(args.to_date),
+        args.geckodriver,
+        args.username,
+        args.password,
+        args.all_files,
+        args.headless,
+        args.de,
+        args.wsl,
+    )
 
 
 def download_documents(
@@ -79,6 +96,12 @@ def download_documents(
             driver.close()
 
     print("Done!")
+
+
+def _str_to_date(date_string: str) -> date:
+    if date_string == "today":
+        return date.today()
+    return datetime.strptime(date_string, "%Y-%m-%d").date()
 
 
 def _get_driver(
