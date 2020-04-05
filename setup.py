@@ -9,7 +9,7 @@ setup(
     description="Automatic download of banking/broker documents from flatex",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/pspeter/statement_dl",
+    url="https://github.com/pspeter/statement-dl",
     author="Peter Schmidbauer",
     author_email="peter.schmidb@gmail.com",
     license="MIT",
