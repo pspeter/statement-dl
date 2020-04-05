@@ -71,6 +71,7 @@ def download_documents(
         )
 
     tld = "de" if de else "at"
+    dest = dest.absolute()
     firefox_download_dir = str(dest)
     download_path = dest
     if wsl:
