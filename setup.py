@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open("README.md", "r") as fp:
     long_description = fp.read()
@@ -13,7 +13,8 @@ setup(
     author="Peter Schmidbauer",
     author_email="peter.schmidb@gmail.com",
     license="MIT",
-    packages=["statement_dl"],
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
     install_requires=["selenium>=3.141.0,<4.0.0"],
     python_requires=">=3.6",
     zip_safe=False,
