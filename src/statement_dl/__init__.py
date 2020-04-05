@@ -11,7 +11,7 @@ banks. Call 'statement_dl <broker/bank> -h' for more help.
 def main():
     parser = ArgumentParser(prog="statement_dl", description=_prog_description)
 
-    subparser = parser.add_subparsers(title="Available brokers/banks")
+    subparser = parser.add_subparsers(title="Available broker/banks")
 
     download_parent_parser = ArgumentParser(add_help=False)
     download_parent_parser.add_argument(
