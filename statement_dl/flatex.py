@@ -47,6 +47,7 @@ def download_documents_from_args(args: Namespace):
         args.password,
         args.all_files,
         args.headless,
+        args.keep_filenames,
         args.de,
         args.wsl,
     )
@@ -61,6 +62,7 @@ def download_documents(
     pw: Optional[str],
     all_files: bool,
     headless: bool,
+    keep_filenames: bool,
     de: bool,
     wsl: bool,
 ) -> None:
@@ -87,7 +89,7 @@ def download_documents(
     set_download_filter(driver, from_date, to_date, all_files)
 
     try:
-        _download_pdfs(driver, dest, download_path)
+        _download_pdfs(driver, dest, download_path, keep_filenames)
     finally:
         try:
             driver.find_element_by_xpath(
@@ -177,7 +179,9 @@ def _enter_date(driver, date_elem, desired_date: date):
     date_elem.send_keys(Keys.ENTER)
 
 
-def _download_pdfs(driver: webdriver.Firefox, dest: Path, download_path: Path) -> None:
+def _download_pdfs(
+    driver: webdriver.Firefox, dest: Path, download_path: Path, keep_filenames: bool
+) -> None:
     # the driver.get call that downloads the pdf does not return normally, so
     # we have to wait for it to time out default timeout is a couple minutes,
     # but 3 seconds should be enough to start the download
@@ -186,17 +190,17 @@ def _download_pdfs(driver: webdriver.Firefox, dest: Path, download_path: Path) -
     num_files = len(driver.find_elements_by_xpath(f'//table[@class="Data"]/tbody/tr'))
 
     print(f"Downloading files to {str(download_path)}")
-    driver.execute_script("window.pdf_download_url = ''")
     driver.execute_script(onfinished)
-    url = ""
     for file_idx in range(num_files):
+        driver.execute_script("window.pdf_download_url = ''")
+        url = ""
         elems = driver.find_elements_by_xpath(
             f'//table[@class="Data"]/tbody/tr[{file_idx + 1}]/td'
         )
         if not elems:
             continue
 
-        _, dmy_date_string, doc_type, name, _ = (e.text for e in elems)
+        _, dmy_date_string, doc_type, raw_doc_title, _ = (e.text for e in elems)
         file_date = datetime.strptime(dmy_date_string, "%d.%m.%Y").date()
         ymd_date_string = file_date.strftime("%Y-%m-%d")
 
@@ -205,7 +209,7 @@ def _download_pdfs(driver: webdriver.Firefox, dest: Path, download_path: Path) -
         print(f"File #{file_idx + 1}")
         print("Date:", dmy_date_string)
         print("Type:", doc_type)
-        print("Name:", name)
+        print("Name:", raw_doc_title)
 
         driver.execute_script("window.pdf_download_url = ''")
         row = driver.find_element_by_xpath(
@@ -219,16 +223,20 @@ def _download_pdfs(driver: webdriver.Firefox, dest: Path, download_path: Path) -
             url = driver.execute_script("return window.pdf_download_url")
 
         dest_dir = dest / re.sub(r"_+", "_", re.sub(r"\W", "_", doc_type)).lower()
-        # remove date from back of title
-        file_name = re.sub(r" vom \d\d\.\d\d.\d\d\d\d$", "", name)
-        # replace special chars
-        file_name = re.sub(r"\W", "_", file_name)
-        file_name = re.sub(r"_+", "_", file_name)
-        file_name = file_name.strip("_")
-        # prepend date
-        file_name = f"{ymd_date_string}_{file_name}.pdf"
 
         downloaded_file_name = unquote(url).split("/")[-1]
+        if keep_filenames:
+            file_name = downloaded_file_name
+        else:
+            # remove date from back of title
+            file_name = re.sub(r" vom \d\d\.\d\d.\d\d\d\d$", "", raw_doc_title)
+            # replace special chars
+            file_name = re.sub(r"\W", "_", file_name)
+            file_name = re.sub(r"_+", "_", file_name)
+            file_name = file_name.strip("_")
+            # prepend date
+            file_name = f"{ymd_date_string}_{file_name}.pdf"
+
         dest_file = dest_dir / file_name
 
         if dest_file.exists():

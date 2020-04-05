@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 from .flatex import download_documents_from_args as flatex_dl
 
 _prog_description = """\
-statement_dl can be used to download files from online (mainly Austrian) brokers and 
+statement_dl can be used to download files from online (mainly Austrian) brokers and
 banks. Call 'statement_dl <broker/bank> -h' for more help.
 """
 
@@ -15,9 +15,7 @@ def main():
 
     download_parent_parser = ArgumentParser(add_help=False)
     download_parent_parser.add_argument(
-        "dest",
-        type=str,
-        help="Directory in which your downloaded files will be saved",
+        "dest", type=str, help="Directory in which your downloaded files will be saved",
     )
     download_parent_parser.add_argument(
         "-f",
@@ -69,6 +67,13 @@ def main():
         "--all-files",
         action="store_true",
         help="Automatically download all files instead of only unread",
+    )
+    download_parent_parser.add_argument(
+        "-k",
+        "--keep-filenames",
+        action="store_true",
+        help="Keep the original filenames instead of renaming them to a more "
+        "useful format",
     )
 
     flatex_parser = subparser.add_parser("flatex", parents=[download_parent_parser])
