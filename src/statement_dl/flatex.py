@@ -2,14 +2,15 @@ import re
 import shutil
 import time
 from argparse import Namespace
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Optional
 from urllib.parse import unquote
 
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 from statement_dl.utils import get_driver, parse_date
@@ -84,15 +85,17 @@ def download_documents(
     driver.get(f"http://www.flatex.{tld}/kunden-login/")
     _login(driver, user, pw)
     _go_to_documents_tab(driver)
-    set_download_filter(driver, from_date, to_date, all_files)
 
     try:
-        _download_pdfs(driver, dest, download_path, all_files, keep_filenames)
+        _download_pdfs(
+            driver, from_date, to_date, dest, download_path, all_files, keep_filenames
+        )
     finally:
         try:
-            driver.find_element_by_xpath(
-                '//div[contains(@class, "LogoutArea")]'
-            ).click()
+            _click(
+                driver,
+                driver.find_element_by_xpath('//div[contains(@class, "LogoutArea")]'),
+            )
         finally:
             driver.close()
 
@@ -120,15 +123,62 @@ def _go_to_documents_tab(driver: webdriver.Firefox) -> None:
     time.sleep(1)
 
 
-def set_download_filter(
+def _download_pdfs(
+    driver: webdriver.Firefox,
+    from_date: date,
+    to_date: date,
+    dest: Path,
+    download_path: Path,
+    all_files: bool,
+    keep_filenames: bool,
+) -> None:
+    _set_download_filter(driver, from_date, to_date, all_files)
+
+    print(f"Downloading files to {str(download_path)}")
+
+    # the driver.get call that downloads the pdf does not return normally, so
+    # we have to wait for it to time out default timeout is a couple minutes,
+    # but 3 seconds should be enough to start the download
+    driver.set_page_load_timeout(3)
+
+    rows = driver.find_elements_by_xpath(f'//table[@class="Data"]/tbody/tr')
+    num_files = len(rows)
+    max_loaded_files = 100
+
+    while num_files == max_loaded_files:
+        # only 100 files are displayed at most, so we need to do some manual
+        # paging using the date filters
+        print("More than 100 files, paging through results")
+        last_date_string = driver.find_element_by_xpath(
+            f"//table[@class='Data']/tbody/tr[last()]/td[2]"
+        ).text
+        last_date = _parse_list_date(last_date_string)
+        day_after_last_date = last_date + timedelta(days=1)
+        _set_download_filter(driver, day_after_last_date, to_date, all_files)
+        _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames)
+        # set filter to cover the range of files we haven't downloaded yet
+        _set_download_filter(driver, from_date, last_date, all_files)
+        rows = driver.find_elements_by_xpath(f'//table[@class="Data"]/tbody/tr')
+        num_files = len(rows)
+
+    _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames)
+
+
+def _set_download_filter(
     driver: webdriver.Firefox, from_date: date, to_date: date, all_files: bool
 ) -> None:
+    # flatex treats from date as exclusive, which is unintuitive, so let's
+    # subtract 1 day
+    from_date = from_date - timedelta(days=1)
     # select all or unread
-    driver.find_element_by_xpath('//div[contains(@id, "readState")]').click()
+    _click(driver, driver.find_element_by_xpath('//div[contains(@id, "readState")]'))
     selected_option = "0" if all_files else "2"
-    driver.find_element_by_xpath(
-        f'//div[@id="documentArchiveListForm_readState_item_{selected_option}"]'
-    ).click()
+    _click(
+        driver,
+        driver.find_element_by_xpath(
+            f'//div[@id="documentArchiveListForm_readState_item_{selected_option}"]'
+        ),
+    )
     # expand date range
     date_from_elem = driver.find_element_by_xpath(
         '//input[contains(@id, "dateRangeComponent_startDate")]'
@@ -138,39 +188,42 @@ def set_download_filter(
     )
     _enter_date(driver, date_from_elem, from_date)
     _enter_date(driver, date_to_elem, to_date)
+
+    try:
+        wait_elem = driver.find_element_by_xpath(
+            "//table[@class='Data']/tbody/tr[last()]"
+        )
+    except NoSuchElementException:
+        wait_elem = driver.find_element_by_xpath(
+            "//div[text()='Keine Dokumente vorhanden.']"
+        )
+
     # hit search
-    driver.find_element_by_xpath('//input[contains(@id, "applyFilterButton")]').click()
-    time.sleep(1)
+    _click(
+        driver,
+        driver.find_element_by_xpath('//input[contains(@id, "applyFilterButton")]'),
+    )
+    try:
+        timeout = 5
+        WebDriverWait(driver, timeout).until(ec.staleness_of(wait_elem))
+    except TimeoutException:
+        pass  # filter hasn't changed elements
 
 
 def _enter_date(driver, date_elem, desired_date: date):
     driver.execute_script(
         'arguments[0].removeAttribute("readonly", "readonly")', date_elem
     )
-    date_elem.click()
+    _click(driver, date_elem)
     date_elem.send_keys(Keys.BACKSPACE * 10)  # delete old date
     date_elem.send_keys(desired_date.strftime("%d.%m.%Y"))
     date_elem.send_keys(Keys.ENTER)
+    time.sleep(0.1)
 
 
-def _download_pdfs(
-    driver: webdriver.Firefox,
-    dest: Path,
-    download_path: Path,
-    all_files: bool,
-    keep_filenames: bool,
-) -> None:
-    # todo handle at most 100 files are displayed at once
-
-    # the driver.get call that downloads the pdf does not return normally, so
-    # we have to wait for it to time out default timeout is a couple minutes,
-    # but 3 seconds should be enough to start the download
-    driver.set_page_load_timeout(3)
-
-    num_files = len(driver.find_elements_by_xpath(f'//table[@class="Data"]/tbody/tr'))
-
-    print(f"Downloading files to {str(download_path)}")
+def _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames):
     driver.execute_script(onfinished)
+    num_files = len(driver.find_elements_by_xpath(f'//table[@class="Data"]/tbody/tr'))
 
     for file_idx in range(num_files):
         driver.execute_script("window.pdf_download_url = ''")
@@ -185,17 +238,14 @@ def _download_pdfs(
             continue
 
         _, dmy_date_string, doc_type, raw_doc_title, _ = (e.text for e in elems)
-        file_date = datetime.strptime(dmy_date_string, "%d.%m.%Y").date()
+        file_date = _parse_list_date(dmy_date_string)
         ymd_date_string = file_date.strftime("%Y-%m-%d")
 
         print()
-        print()
-        print(f"File #{file_idx + 1}")
         print("Date:", dmy_date_string)
         print("Type:", doc_type)
         print("Name:", raw_doc_title)
 
-        driver.execute_script("window.pdf_download_url = ''")
         row = driver.find_element_by_xpath(
             f'//table[@class="Data"]/tbody/tr[{file_idx + 1}]'
         )
@@ -245,3 +295,17 @@ def _download_pdfs(
         dest_dir.mkdir(exist_ok=True, parents=True)
         pdf = download_path / downloaded_file_name
         shutil.move(str(pdf), str(dest_file))
+
+
+def _click(driver: webdriver.Firefox, elem: WebElement) -> None:
+    retry = driver.find_elements_by_xpath(
+        "//input[@id='previousActionNotFinishedOverlayForm_retryButton']"
+    )
+    if retry:
+        retry[0].click()
+
+    elem.click()
+
+
+def _parse_list_date(date_string: str) -> date:
+    return datetime.strptime(date_string, "%d.%m.%Y").date()
