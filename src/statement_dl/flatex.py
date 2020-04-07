@@ -1,20 +1,18 @@
-from argparse import Namespace
-
-from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as ec
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.firefox.options import Options
-
-from datetime import datetime, date
-from pathlib import Path
 import re
 import shutil
 import time
+from argparse import Namespace
+from datetime import date, datetime
+from pathlib import Path
 from typing import Optional
 from urllib.parse import unquote
 
+from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.support.ui import WebDriverWait
 
 # JavaScript snippets used to trigger the downloads
 onclick = """
@@ -89,7 +87,7 @@ def download_documents(
     set_download_filter(driver, from_date, to_date, all_files)
 
     try:
-        _download_pdfs(driver, dest, download_path, keep_filenames)
+        _download_pdfs(driver, dest, download_path, all_files, keep_filenames)
     finally:
         try:
             driver.find_element_by_xpath(
@@ -181,8 +179,14 @@ def _enter_date(driver, date_elem, desired_date: date):
 
 
 def _download_pdfs(
-    driver: webdriver.Firefox, dest: Path, download_path: Path, keep_filenames: bool
+    driver: webdriver.Firefox,
+    dest: Path,
+    download_path: Path,
+    all_files: bool,
+    keep_filenames: bool,
 ) -> None:
+    # todo handle at most 100 files are displayed at once
+
     # the driver.get call that downloads the pdf does not return normally, so
     # we have to wait for it to time out default timeout is a couple minutes,
     # but 3 seconds should be enough to start the download
@@ -192,11 +196,15 @@ def _download_pdfs(
 
     print(f"Downloading files to {str(download_path)}")
     driver.execute_script(onfinished)
+
     for file_idx in range(num_files):
         driver.execute_script("window.pdf_download_url = ''")
         url = ""
+        # when we read a previously unread file, it disappears from the list, so
+        # have to keep reading the first file
+        download_idx = file_idx + 1 if all_files else 1
         elems = driver.find_elements_by_xpath(
-            f'//table[@class="Data"]/tbody/tr[{file_idx + 1}]/td'
+            f'//table[@class="Data"]/tbody/tr[{download_idx}]/td'
         )
         if not elems:
             continue
