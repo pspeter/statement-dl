@@ -258,26 +258,15 @@ def _download_current_pdfs(driver, download_path, dest, all_files, keep_filename
 
         dest_dir = dest / re.sub(r"_+", "_", re.sub(r"\W", "_", doc_type))
 
-        downloaded_file_name = unquote(url).split("/")[-1]
+        downloaded_filename = unquote(url).split("/")[-1]
         if keep_filenames:
-            file_name = downloaded_file_name
+            filename = downloaded_filename
         else:
-            doc_id_match = re.search(r"(\d+).pdf", downloaded_file_name)
-            doc_id = doc_id_match.group(1) if doc_id_match else None
-            # remove date from back of title
-            file_name = re.sub(r" vom \d\d\.\d\d.\d\d\d\d$", "", raw_doc_title)
-            # replace special chars
-            file_name = re.sub(r"\W", "_", file_name)
-            file_name = re.sub(r"_+", "_", file_name)
-            file_name = file_name.strip("_")
-            # prepend date, append doc id
-            file_name = (
-                f"{ymd_date_string}_{file_name}_{doc_id}.pdf"
-                if doc_id
-                else f"{ymd_date_string}_{file_name}.pdf"
+            filename = _proper_filename(
+                downloaded_filename, raw_doc_title, ymd_date_string
             )
 
-        dest_file = dest_dir / file_name
+        dest_file = dest_dir / filename
 
         if dest_file.exists():
             print("Already downloaded, skipping:", url)
@@ -293,8 +282,29 @@ def _download_current_pdfs(driver, download_path, dest, all_files, keep_filename
 
         print(f"Saving file {dest_file}")
         dest_dir.mkdir(exist_ok=True, parents=True)
-        pdf = download_path / downloaded_file_name
+        pdf = download_path / downloaded_filename
         shutil.move(str(pdf), str(dest_file))
+
+
+def _proper_filename(
+    downloaded_file_name: str, raw_doc_title: str, date_string: str
+) -> str:
+    doc_id_match = re.search(r"(\d+).pdf", downloaded_file_name)
+    doc_id = doc_id_match.group(1) if doc_id_match else None
+    # remove date from back of title
+    file_name = re.sub(r" vom \d\d\.\d\d.\d\d\d\d$", "", raw_doc_title)
+    # replace special chars
+    file_name = re.sub(r"\W", "_", file_name)
+    file_name = re.sub(r"_+", "_", file_name)
+    file_name = file_name.strip("_")
+    # prepend date, append doc id
+    file_name = (
+        f"{date_string}_{file_name}_{doc_id}.pdf"
+        if doc_id
+        else f"{date_string}_{file_name}.pdf"
+    )
+
+    return file_name
 
 
 def _click(driver: webdriver.Firefox, elem: WebElement) -> None:
