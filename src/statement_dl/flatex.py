@@ -10,9 +10,9 @@ from urllib.parse import unquote
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
+from statement_dl.utils import get_driver, parse_date
 
 # JavaScript snippets used to trigger the downloads
 onclick = """
@@ -38,8 +38,8 @@ onfinished = """
 def download_documents_from_args(args: Namespace):
     download_documents(
         Path(args.dest),
-        _str_to_date(args.from_date),
-        _str_to_date(args.to_date),
+        parse_date(args.from_date),
+        parse_date(args.to_date),
         args.geckodriver,
         args.username,
         args.password,
@@ -80,7 +80,7 @@ def download_documents(
         firefox_download_dir = "C:\\tmp"
         download_path = Path("/mnt/c/tmp")
 
-    driver = _get_driver(geckodriver, firefox_download_dir, headless)
+    driver = get_driver(geckodriver, firefox_download_dir, headless)
     driver.get(f"http://www.flatex.{tld}/kunden-login/")
     _login(driver, user, pw)
     _go_to_documents_tab(driver)
@@ -97,31 +97,6 @@ def download_documents(
             driver.close()
 
     print("Done!")
-
-
-def _str_to_date(date_string: str) -> date:
-    if date_string == "today":
-        return date.today()
-    return datetime.strptime(date_string, "%Y-%m-%d").date()
-
-
-def _get_driver(
-    geckodriver: Optional[str], download_dir: str, headless: bool
-) -> webdriver.Firefox:
-    fp = webdriver.FirefoxProfile()
-    fp.set_preference("browser.download.folderList", 2)
-    fp.set_preference("browser.helperApps.alwaysAsk.force", False)
-    fp.set_preference("browser.download.dir", download_dir)
-    fp.set_preference("pdfjs.disabled", True)
-    fp.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/pdf")
-    fp.set_preference("browser.download.manager.showWhenStarting", False)
-
-    options = Options()
-    options.headless = headless
-
-    geckodriver = geckodriver if geckodriver else "geckodriver"
-    driver = webdriver.Firefox(fp, options=options, executable_path=geckodriver)
-    return driver
 
 
 def _login(driver: webdriver.Firefox, user: Optional[str], pw: Optional[str]) -> None:
