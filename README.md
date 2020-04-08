@@ -1,5 +1,8 @@
 # statement-dl
 
+![PyPI](https://img.shields.io/pypi/v/statement-dl.svg)
+![calver](https://img.shields.io/badge/calver-YYYY.0M.MICRO-22bfda.svg)
+
 This tool is built to be able to automatically download all documents from 
 online banks and brokes that don't offer batch download options themselves, 
 since it is usually quite cumbersome to download each file individually. The
