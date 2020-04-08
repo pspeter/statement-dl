@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 
+from .bawag_psk import download_documents_from_args as bawag_psk_dl
 from .flatex import download_documents_from_args as flatex_dl
 
 _prog_description = """\
@@ -83,6 +84,11 @@ def main():
         action="store_true",
         help="Use 'de' domain instead of 'at' (experimental)",
     )
+
+    bawag_psk_parser = subparser.add_parser(
+        "bawag-psk", parents=[download_parent_parser]
+    )
+    bawag_psk_parser.set_defaults(func=bawag_psk_dl)
 
     args = parser.parse_args()
 
