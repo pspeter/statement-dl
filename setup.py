@@ -5,7 +5,7 @@ with open("README.md", "r") as fp:
 
 setup(
     name="statement-dl",
-    version="2020.04.05-post1",
+    version="2020.04.06",
     description="Automatic download of banking/broker documents from flatex",
     long_description=long_description,
     long_description_content_type="text/markdown",
