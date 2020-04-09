@@ -3,6 +3,7 @@ import shutil
 import time
 from argparse import Namespace
 from datetime import date, datetime, timedelta
+from getpass import getpass
 from pathlib import Path
 from typing import Optional
 from urllib.parse import unquote
@@ -83,7 +84,7 @@ def download_documents(
 
     driver = get_driver(geckodriver, firefox_download_dir, headless)
     driver.get(f"http://www.flatex.{tld}/kunden-login/")
-    _login(driver, user, pw)
+    _login(driver, user, pw, headless)
     _go_to_documents_tab(driver)
 
     try:
@@ -102,16 +103,30 @@ def download_documents(
     print("Done!")
 
 
-def _login(driver: webdriver.Firefox, user: Optional[str], pw: Optional[str]) -> None:
+def _login(
+    driver: webdriver.Firefox, user: Optional[str], pw: Optional[str], headless: bool
+) -> None:
+    user_input = driver.find_element_by_xpath('//input[@id="uname_app"]')
+    pw_input = driver.find_element_by_xpath('//input[@id="password_app"]')
+
+    while not user and headless:
+        user = input("Enter your flatex username: ")
+
+    while not pw and headless:
+        pw = getpass("Enter your flatex password: ")
+
     if user:
-        driver.find_element_by_xpath('//input[@id="uname_app"]').send_keys(user)
+        user_input.send_keys(user)
+
     if pw:
-        driver.find_element_by_xpath('//input[@id="password_app"]').send_keys(pw)
+        pw_input.send_keys(pw)
+
     if user and pw:
         driver.find_element_by_xpath('//div[@title="Anmelden"]').click()
     else:
         driver.find_element_by_xpath('//input[@id="uname_app"]').click()
-        print("Please login")
+        print("Please login in the browser")
+
     login_timeout = 300
     WebDriverWait(driver, login_timeout).until(ec.title_is("Onlinebanking"))
     time.sleep(1)
