@@ -84,6 +84,7 @@ def download_documents(
 
     driver = get_driver(geckodriver, firefox_download_dir, headless)
     driver.get(f"http://www.flatex.{tld}/kunden-login/")
+    _accept_cookies(driver)
     _login(driver, user, pw, headless)
     _go_to_documents_tab(driver)
 
@@ -101,6 +102,12 @@ def download_documents(
             driver.close()
 
     print("Done!")
+
+
+def _accept_cookies(driver: webdriver.Firefox) -> None:
+    time.sleep(1)
+    driver.find_element_by_xpath('//button[text()="Alle akzeptieren"]').click()
+    time.sleep(1)
 
 
 def _login(
