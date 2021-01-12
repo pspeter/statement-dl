@@ -269,7 +269,7 @@ def _download_current_pdfs(driver, download_path, dest, all_files, keep_filename
         print("Name:", raw_doc_title)
 
         row = driver.find_element_by_xpath(
-            f'//table[@class="Data"]/tbody/tr[{file_idx + 1}]'
+            f'//table[@class="Data"]/tbody/tr[{download_idx}]'
         )
         driver.execute_script(onclick.format(file_idx), row)
 
