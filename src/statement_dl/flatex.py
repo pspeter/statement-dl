@@ -129,7 +129,7 @@ def _login(
         pw_input.send_keys(pw)
 
     if user and pw:
-        driver.find_element_by_xpath('//div[@title="Anmelden"]').click()
+        driver.find_element_by_xpath('//div[@title="Login"]').click()
     else:
         driver.find_element_by_xpath('//input[@id="uname_app"]').click()
         print("Please login in the browser")
