@@ -36,7 +36,7 @@ To start off, you probably want to download all your previous documents. By defa
 the tool only downloads the unread files. To download all files from flatex, use the
 command 
 
-`>>> statement_dl <destination dir> --all-files`
+`>>> statement_dl flatex <destination dir> --all-files`
 
 If you don't specify the `--username` and `--password` options, you will be prompted
 to enter them yourself in the browser.
