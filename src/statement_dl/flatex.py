@@ -10,6 +10,7 @@ from urllib.parse import unquote
 
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
@@ -140,9 +141,16 @@ def _login(
 
 
 def _go_to_documents_tab(driver: webdriver.Firefox) -> None:
-    driver.find_element_by_xpath('//td[@id="menu_mailMenu"]').click()
+    mail_button = WebDriverWait(driver, 60).until(
+        ec.presence_of_element_located((By.XPATH, '//td[@id="menu_mailMenu"]'))
+    )
+    mail_button.click()
     driver.find_element_by_xpath('//*[text()="Dokumentenarchiv"]').click()
-    time.sleep(1)
+    WebDriverWait(driver, 60).until(
+        ec.presence_of_element_located(
+            (By.XPATH, '//form[@id="documentArchiveListForm"]')
+        )
+    )
 
 
 def _download_pdfs(
@@ -159,7 +167,7 @@ def _download_pdfs(
     print(f"Downloading files to {str(download_path)}")
 
     # the driver.get call that downloads the pdf does not return normally, so
-    # we have to wait for it to time out default timeout is a couple minutes,
+    # we have to wait for it to time out. Default timeout is a couple minutes,
     # but 3 seconds should be enough to start the download
     driver.set_page_load_timeout(3)
 
