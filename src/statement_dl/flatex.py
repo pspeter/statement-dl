@@ -197,9 +197,6 @@ def _download_pdfs(
 def _set_download_filter(
     driver: webdriver.Firefox, from_date: date, to_date: date, all_files: bool
 ) -> None:
-    # flatex treats from date as exclusive, which is unintuitive, so let's
-    # subtract 1 day
-    from_date = from_date - timedelta(days=1)
     # select all or unread
     _click(driver, driver.find_element_by_xpath('//div[contains(@id, "readState")]'))
     selected_option = "0" if all_files else "2"
