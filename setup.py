@@ -5,7 +5,7 @@ with open("README.md", "r") as fp:
 
 setup(
     name="statement-dl",
-    version="2021.04.1",
+    version="2021.11.1",
     description="Automatic download of banking/broker documents from flatex",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -23,6 +23,8 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
