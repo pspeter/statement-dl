@@ -15,7 +15,9 @@ def main():
 
     download_parent_parser = ArgumentParser(add_help=False)
     download_parent_parser.add_argument(
-        "dest", type=str, help="Directory in which your downloaded files will be saved",
+        "dest",
+        type=str,
+        help="Directory in which your downloaded files will be saved",
     )
     download_parent_parser.add_argument(
         "-f",

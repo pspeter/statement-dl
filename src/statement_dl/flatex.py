@@ -85,13 +85,20 @@ def download_documents(
 
     driver = get_driver(geckodriver, firefox_download_dir, headless)
     driver.get(f"http://konto.flatex.{tld}/")
-    #_accept_cookies(driver)
+    # _accept_cookies(driver)
     _login(driver, user, pw, headless)
     _go_to_documents_tab(driver)
 
     try:
         _download_pdfs(
-            driver, from_date, to_date, dest, download_path, all_files, keep_filenames, tld
+            driver,
+            from_date,
+            to_date,
+            dest,
+            download_path,
+            all_files,
+            keep_filenames,
+            tld,
         )
     finally:
         try:
