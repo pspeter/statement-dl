@@ -91,7 +91,7 @@ def download_documents(
 
     try:
         _download_pdfs(
-            driver, from_date, to_date, dest, download_path, all_files, keep_filenames
+            driver, from_date, to_date, dest, download_path, all_files, keep_filenames, tld
         )
     finally:
         try:
@@ -161,6 +161,7 @@ def _download_pdfs(
     download_path: Path,
     all_files: bool,
     keep_filenames: bool,
+    tld: str,
 ) -> None:
     _set_download_filter(driver, from_date, to_date, all_files)
 
@@ -191,7 +192,7 @@ def _download_pdfs(
         rows = driver.find_elements_by_xpath(f'//table[@class="Data"]/tbody/tr')
         num_files = len(rows)
 
-    _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames)
+    _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames, tld)
 
 
 def _set_download_filter(
@@ -248,7 +249,7 @@ def _enter_date(driver, date_elem, desired_date: date):
     time.sleep(0.1)
 
 
-def _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames):
+def _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames, tld):
     driver.execute_script(onfinished)
     num_files = len(driver.find_elements_by_xpath(f'//table[@class="Data"]/tbody/tr'))
 
@@ -303,7 +304,7 @@ def _download_current_pdfs(driver, download_path, dest, all_files, keep_filename
         time.sleep(1)
         try:
             print(f"Downloading pdf from url {url}")
-            driver.get(f"https://konto.flatex.at{url}")
+            driver.get(f"https://konto.flatex.{tld}{url}")
         except TimeoutException:
             pass
 
