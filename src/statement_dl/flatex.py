@@ -194,7 +194,7 @@ def _download_pdfs(
         last_date = _parse_list_date(last_date_string)
         day_after_last_date = last_date + timedelta(days=1)
         _set_download_filter(driver, day_after_last_date, to_date, all_files)
-        _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames)
+        _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames, tld)
         # set filter to cover the range of files we haven't downloaded yet
         _set_download_filter(driver, from_date, last_date, all_files)
         rows = driver.find_elements_by_xpath(f'//table[@class="Data"]/tbody/tr')
