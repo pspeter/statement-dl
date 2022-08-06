@@ -65,6 +65,11 @@ def main():
         " password are set",
     )
     download_parent_parser.add_argument(
+        "--sub-dirs",
+        action="store_true",
+        help="Store pdf files in separate sub directories",
+    )
+    download_parent_parser.add_argument(
         "-a",
         "--all-files",
         action="store_true",

@@ -48,6 +48,7 @@ def download_documents_from_args(args: Namespace):
         args.password,
         args.all_files,
         args.headless,
+        args.sub_dirs,
         args.keep_filenames,
         args.de,
         args.wsl,
@@ -63,6 +64,7 @@ def download_documents(
     pw: Optional[str],
     all_files: bool,
     headless: bool,
+    sub_dirs: bool,
     keep_filenames: bool,
     de: bool,
     wsl: bool,
@@ -98,6 +100,7 @@ def download_documents(
             download_path,
             all_files,
             keep_filenames,
+            sub_dirs,
             tld,
         )
     finally:
@@ -168,6 +171,7 @@ def _download_pdfs(
     dest: Path,
     download_path: Path,
     all_files: bool,
+    sub_dirs: bool,
     keep_filenames: bool,
     tld: str,
 ) -> None:
@@ -189,18 +193,18 @@ def _download_pdfs(
         # paging using the date filters
         print("More than 100 files, paging through results")
         last_date_string = driver.find_element_by_xpath(
-            f"//table[@class='Data']/tbody/tr[last()]/td[2]"
+            f"//table[@class='Data']/tbody/tr[last()]/td[3]"
         ).text
         last_date = _parse_list_date(last_date_string)
         day_after_last_date = last_date + timedelta(days=1)
         _set_download_filter(driver, day_after_last_date, to_date, all_files)
-        _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames, tld)
+        _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames, sub_dirs, tld)
         # set filter to cover the range of files we haven't downloaded yet
         _set_download_filter(driver, from_date, last_date, all_files)
         rows = driver.find_elements_by_xpath(f'//table[@class="Data"]/tbody/tr')
         num_files = len(rows)
 
-    _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames, tld)
+    _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames, sub_dirs, tld)
 
 
 def _set_download_filter(
@@ -257,7 +261,7 @@ def _enter_date(driver, date_elem, desired_date: date):
     time.sleep(0.1)
 
 
-def _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames, tld):
+def _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames, sub_dirs: bool, tld):
     driver.execute_script(onfinished)
     num_files = len(driver.find_elements_by_xpath(f'//table[@class="Data"]/tbody/tr'))
 
@@ -267,13 +271,19 @@ def _download_current_pdfs(driver, download_path, dest, all_files, keep_filename
         # when we read a previously unread file, it disappears from the list, so
         # have to keep reading the first file
         download_idx = file_idx + 1 if all_files else 1
-        elems = driver.find_elements_by_xpath(
-            f'//table[@class="Data"]/tbody/tr[{download_idx}]/td'
-        )
-        if not elems:
-            continue
+        
+        dmy_date_string = driver.find_element_by_xpath(
+            f"//table[@class='Data']/tbody/tr[{download_idx}]/td[3]"
+        ).text
 
-        _, dmy_date_string, doc_type, raw_doc_title, _ = (e.text for e in elems)
+        doc_type = driver.find_element_by_xpath(
+            f"//table[@class='Data']/tbody/tr[{download_idx}]/td[4]"
+        ).text
+
+        raw_doc_title = driver.find_element_by_xpath(
+            f"//table[@class='Data']/tbody/tr[{download_idx}]/td[5]"
+        ).text
+
         file_date = _parse_list_date(dmy_date_string)
         ymd_date_string = file_date.strftime("%Y-%m-%d")
 
@@ -292,7 +302,10 @@ def _download_current_pdfs(driver, download_path, dest, all_files, keep_filename
             time.sleep(0.1)
             url = driver.execute_script("return window.pdf_download_url")
 
-        dest_dir = dest / re.sub(r"_+", "_", re.sub(r"\W", "_", doc_type))
+        if sub_dirs:
+            dest_dir = dest / re.sub(r"_+", "_", re.sub(r"\W", "_", doc_type))
+        else:
+            dest_dir = dest
 
         downloaded_filename = unquote(url).split("/")[-1]
         if keep_filenames:
