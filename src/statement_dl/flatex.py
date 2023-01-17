@@ -171,8 +171,8 @@ def _download_pdfs(
     dest: Path,
     download_path: Path,
     all_files: bool,
-    sub_dirs: bool,
     keep_filenames: bool,
+    sub_dirs: bool,
     tld: str,
 ) -> None:
     _set_download_filter(driver, from_date, to_date, all_files)
