@@ -31,7 +31,7 @@ onclick = """
 
 
 onfinished = """
-    DownloadDocumentBrowserBehaviorsClick.finished = function(a, b) {
+    DocumentViewer.display = function(a, b) {
        console.log(a);
        window.pdf_download_url = a;
     };
@@ -226,7 +226,9 @@ def _set_download_filter(
     date_to_elem = driver.find_element_by_xpath(
         '//input[contains(@id, "dateRangeComponent_endDate")]'
     )
+    time.sleep(1)
     _enter_date(driver, date_from_elem, from_date)
+    time.sleep(1)
     _enter_date(driver, date_to_elem, to_date)
 
     try:
