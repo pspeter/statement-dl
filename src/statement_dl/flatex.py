@@ -88,7 +88,7 @@ def download_documents(
     driver = get_driver(geckodriver, firefox_download_dir, headless)
     driver.get(f"http://konto.flatex.{tld}/")
     # _accept_cookies(driver)
-    _login(driver, user, pw, headless)
+    _login(driver, user, pw, de, headless)
     _go_to_documents_tab(driver)
 
     try:
@@ -122,11 +122,16 @@ def _accept_cookies(driver: webdriver.Firefox) -> None:
 
 
 def _login(
-    driver: webdriver.Firefox, user: Optional[str], pw: Optional[str], headless: bool
-) -> None:
+    driver: webdriver.Firefox, user: Optional[str], pw: Optional[str], de: bool, headless: bool) -> None:
     time.sleep(1)
-    user_input = driver.find_element_by_xpath('//input[@id="loginForm_userId"]')
-    pw_input = driver.find_element_by_xpath('//input[@id="loginForm_pin"]')
+    
+    if de:
+        formid_user, formid_pw, formid_btn = "txtUserId", "txtPassword_txtPassword", "btnLogin"
+    else:
+        formid_user, formid_pw, formid_btn = "userId", "pin", "loginButton"
+    
+    user_input = driver.find_element_by_xpath(f'//input[@id="loginForm_{formid_user}"]')
+    pw_input = driver.find_element_by_xpath(f'//input[@id="loginForm_{formid_pw}"]')
 
     while not user and headless:
         user = input("Enter your flatex username: ")
@@ -141,9 +146,9 @@ def _login(
         pw_input.send_keys(pw)
 
     if user and pw:
-        driver.find_element_by_xpath('//input[@id="loginForm_loginButton"]').click()
+        driver.find_element_by_xpath(f'//input[@id="loginForm_{formid_btn}"]').click()
     else:
-        driver.find_element_by_xpath('//input[@id="loginForm_userId"]').click()
+        driver.find_element_by_xpath(f'//input[@id="loginForm_{formid_user}"]').click()
         print("Please login in the browser")
 
     login_timeout = 300
