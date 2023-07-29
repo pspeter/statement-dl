@@ -201,9 +201,8 @@ def _download_pdfs(
         _set_download_filter(driver, day_after_last_date, to_date, all_files)
         _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames, sub_dirs, tld)
         # set filter to cover the range of files we haven't downloaded yet
-        _set_download_filter(driver, from_date, last_date, all_files)
-        rows = driver.find_elements(By.XPATH, f'//table[@class="Data"]/tbody/tr')
-        num_files = len(rows)
+        to_date = last_date
+        _set_download_filter(driver, from_date, to_date, all_files)
 
     _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames, sub_dirs, tld)
 
@@ -218,6 +217,7 @@ def _check_if_max_documents_displayed(driver: webdriver.Firefox) -> bool:
 def _set_download_filter(
     driver: webdriver.Firefox, from_date: date, to_date: date, all_files: bool
 ) -> None:
+    print(f"Setting download filter to {from_date} - {to_date}, {all_files=}")
     # select all or unread
     _click(driver, driver.find_element(By.XPATH, '//div[contains(@id, "readState")]'))
     selected_option = "0" if all_files else "2"
