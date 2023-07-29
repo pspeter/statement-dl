@@ -224,6 +224,16 @@ def _set_download_filter(
             f'//div[@id="documentArchiveListForm_readState_item_{selected_option}"]'
         ),
     )
+    # activate individual date range
+    date_range_picker = driver.find_element(
+        By.ID, "documentArchiveListForm_dateRangeComponent_retrievalPeriodSelection"
+    )
+    _click(driver, date_range_picker)
+    individual_range_item = driver.find_element(
+        By.ID, "documentArchiveListForm_dateRangeComponent_retrievalPeriodSelection_item_6"
+    )
+    _click(driver, individual_range_item)
+
     # expand date range
     date_from_elem = driver.find_element_by_xpath(
         '//input[contains(@id, "dateRangeComponent_startDate")]'
