@@ -238,6 +238,7 @@ def _set_download_filter(
     )
     _click(driver, individual_range_item)
 
+    time.sleep(1)
     # expand date range
     date_from_elem = driver.find_element(
         By.XPATH,
@@ -247,7 +248,6 @@ def _set_download_filter(
         By.XPATH,
         '//input[contains(@id, "dateRangeComponent_endDate")]'
     )
-    time.sleep(1)
     _enter_date(driver, date_from_elem, from_date)
     time.sleep(1)
     _enter_date(driver, date_to_elem, to_date)
