@@ -312,7 +312,7 @@ def _download_current_pdfs(driver, download_path, dest, all_files, keep_filename
         row = driver.find_element_by_xpath(
             f'//table[@class="Data"]/tbody/tr[{download_idx}]'
         )
-        driver.execute_script(onclick.format(file_idx), row)
+        driver.execute_script(onclick.format(download_idx - 1), row)
 
         time.sleep(0.3)
         while not url or url == "none":
