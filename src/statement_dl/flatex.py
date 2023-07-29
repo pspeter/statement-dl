@@ -107,7 +107,7 @@ def download_documents(
         try:
             _click(
                 driver,
-                driver.find_element_by_xpath('//div[contains(@class, "LogoutArea")]'),
+                driver.find_element(By.XPATH, '//div[contains(@class, "LogoutArea")]'),
             )
         finally:
             driver.close()
@@ -117,7 +117,7 @@ def download_documents(
 
 def _accept_cookies(driver: webdriver.Firefox) -> None:
     time.sleep(1)
-    driver.find_element_by_xpath('//button[text()="Alle akzeptieren"]').click()
+    driver.find_element(By.XPATH, '//button[text()="Alle akzeptieren"]').click()
     time.sleep(3)
 
 
@@ -130,8 +130,8 @@ def _login(
     else:
         formid_user, formid_pw, formid_btn = "userId", "pin", "loginButton"
     
-    user_input = driver.find_element_by_xpath(f'//input[@id="loginForm_{formid_user}"]')
-    pw_input = driver.find_element_by_xpath(f'//input[@id="loginForm_{formid_pw}"]')
+    user_input = driver.find_element(By.XPATH, f'//input[@id="loginForm_{formid_user}"]')
+    pw_input = driver.find_element(By.XPATH, f'//input[@id="loginForm_{formid_pw}"]')
 
     while not user and headless:
         user = input("Enter your flatex username: ")
@@ -146,9 +146,9 @@ def _login(
         pw_input.send_keys(pw)
 
     if user and pw:
-        driver.find_element_by_xpath(f'//input[@id="loginForm_{formid_btn}"]').click()
+        driver.find_element(By.XPATH, f'//input[@id="loginForm_{formid_btn}"]').click()
     else:
-        driver.find_element_by_xpath(f'//input[@id="loginForm_{formid_user}"]').click()
+        driver.find_element(By.XPATH, f'//input[@id="loginForm_{formid_user}"]').click()
         print("Please login in the browser")
 
     login_timeout = 300
@@ -161,7 +161,7 @@ def _go_to_documents_tab(driver: webdriver.Firefox) -> None:
         ec.presence_of_element_located((By.XPATH, '//td[@id="menu_mailMenu"]'))
     )
     mail_button.click()
-    driver.find_element_by_xpath('//*[text()="Dokumentenarchiv"]').click()
+    driver.find_element(By.XPATH, '//*[text()="Dokumentenarchiv"]').click()
     WebDriverWait(driver, 60).until(
         ec.presence_of_element_located(
             (By.XPATH, '//form[@id="documentArchiveListForm"]')
@@ -189,7 +189,7 @@ def _download_pdfs(
     # but 3 seconds should be enough to start the download
     driver.set_page_load_timeout(3)
 
-    rows = driver.find_elements_by_xpath(f'//table[@class="Data"]/tbody/tr')
+    rows = driver.find_elements(By.XPATH, f'//table[@class="Data"]/tbody/tr')
     num_files = len(rows)
     max_loaded_files = 100
 
@@ -197,7 +197,7 @@ def _download_pdfs(
         # only 100 files are displayed at most, so we need to do some manual
         # paging using the date filters
         print("More than 100 files, paging through results")
-        last_date_string = driver.find_element_by_xpath(
+        last_date_string = driver.find_element(By.XPATH, 
             f"//table[@class='Data']/tbody/tr[last()]/td[3]"
         ).text
         last_date = _parse_list_date(last_date_string)
@@ -206,7 +206,7 @@ def _download_pdfs(
         _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames, sub_dirs, tld)
         # set filter to cover the range of files we haven't downloaded yet
         _set_download_filter(driver, from_date, last_date, all_files)
-        rows = driver.find_elements_by_xpath(f'//table[@class="Data"]/tbody/tr')
+        rows = driver.find_elements(By.XPATH, f'//table[@class="Data"]/tbody/tr')
         num_files = len(rows)
 
     _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames, sub_dirs, tld)
@@ -216,11 +216,12 @@ def _set_download_filter(
     driver: webdriver.Firefox, from_date: date, to_date: date, all_files: bool
 ) -> None:
     # select all or unread
-    _click(driver, driver.find_element_by_xpath('//div[contains(@id, "readState")]'))
+    _click(driver, driver.find_element(By.XPATH, '//div[contains(@id, "readState")]'))
     selected_option = "0" if all_files else "2"
     _click(
         driver,
-        driver.find_element_by_xpath(
+        driver.find_element(
+            By.XPATH,
             f'//div[@id="documentArchiveListForm_readState_item_{selected_option}"]'
         ),
     )
@@ -235,10 +236,12 @@ def _set_download_filter(
     _click(driver, individual_range_item)
 
     # expand date range
-    date_from_elem = driver.find_element_by_xpath(
+    date_from_elem = driver.find_element(
+        By.XPATH,
         '//input[contains(@id, "dateRangeComponent_startDate")]'
     )
-    date_to_elem = driver.find_element_by_xpath(
+    date_to_elem = driver.find_element(
+        By.XPATH,
         '//input[contains(@id, "dateRangeComponent_endDate")]'
     )
     time.sleep(1)
@@ -247,18 +250,18 @@ def _set_download_filter(
     _enter_date(driver, date_to_elem, to_date)
 
     try:
-        wait_elem = driver.find_element_by_xpath(
+        wait_elem = driver.find_element(By.XPATH, 
             "//table[@class='Data']/tbody/tr[last()]"
         )
     except NoSuchElementException:
-        wait_elem = driver.find_element_by_xpath(
+        wait_elem = driver.find_element(By.XPATH, 
             "//div[text()='Keine Dokumente vorhanden.']"
         )
 
     # hit search
     _click(
         driver,
-        driver.find_element_by_xpath('//input[contains(@id, "applyFilterButton")]'),
+        driver.find_element(By.XPATH, '//input[contains(@id, "applyFilterButton")]'),
     )
     try:
         timeout = 5
@@ -280,7 +283,7 @@ def _enter_date(driver, date_elem, desired_date: date):
 
 def _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames, sub_dirs: bool, tld):
     driver.execute_script(onfinished)
-    num_files = len(driver.find_elements_by_xpath(f'//table[@class="Data"]/tbody/tr'))
+    num_files = len(driver.find_elements(By.XPATH, f'//table[@class="Data"]/tbody/tr'))
 
     for file_idx in range(num_files):
         driver.execute_script("window.pdf_download_url = ''")
@@ -289,15 +292,18 @@ def _download_current_pdfs(driver, download_path, dest, all_files, keep_filename
         # have to keep reading the first file
         download_idx = file_idx + 1 if all_files else 1
         
-        dmy_date_string = driver.find_element_by_xpath(
+        dmy_date_string = driver.find_element(
+            By.XPATH,
             f"//table[@class='Data']/tbody/tr[{download_idx}]/td[3]"
         ).text
 
-        doc_type = driver.find_element_by_xpath(
+        doc_type = driver.find_element(
+            By.XPATH,
             f"//table[@class='Data']/tbody/tr[{download_idx}]/td[4]"
         ).text
 
-        raw_doc_title = driver.find_element_by_xpath(
+        raw_doc_title = driver.find_element(
+            By.XPATH,
             f"//table[@class='Data']/tbody/tr[{download_idx}]/td[5]"
         ).text
 
@@ -309,7 +315,7 @@ def _download_current_pdfs(driver, download_path, dest, all_files, keep_filename
         print("Type:", doc_type)
         print("Name:", raw_doc_title)
 
-        row = driver.find_element_by_xpath(
+        row = driver.find_element(By.XPATH, 
             f'//table[@class="Data"]/tbody/tr[{download_idx}]'
         )
         driver.execute_script(onclick.format(download_idx - 1), row)
@@ -374,7 +380,7 @@ def _proper_filename(
 
 
 def _click(driver: webdriver.Firefox, elem: WebElement) -> None:
-    retry = driver.find_elements_by_xpath(
+    retry = driver.find_elements(By.XPATH, 
         "//input[@id='previousActionNotFinishedOverlayForm_retryButton']"
     )
     if retry:

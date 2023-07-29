@@ -2,7 +2,7 @@ from datetime import date, datetime
 from typing import Optional
 
 from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.service import Service
 
 
 def parse_date(date_string: str) -> date:
@@ -14,17 +14,17 @@ def parse_date(date_string: str) -> date:
 def get_driver(
     geckodriver: Optional[str], download_dir: str, headless: bool
 ) -> webdriver.Firefox:
-    fp = webdriver.FirefoxProfile()
-    fp.set_preference("browser.download.folderList", 2)
-    fp.set_preference("browser.helperApps.alwaysAsk.force", False)
-    fp.set_preference("browser.download.dir", download_dir)
-    fp.set_preference("pdfjs.disabled", True)
-    fp.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/pdf")
-    fp.set_preference("browser.download.manager.showWhenStarting", False)
-
-    options = Options()
+    options = webdriver.FirefoxOptions()
     options.headless = headless
+    options.set_preference("browser.download.folderList", 2)
+    options.set_preference("browser.helperApps.alwaysAsk.force", False)
+    options.set_preference("browser.download.dir", download_dir)
+    options.set_preference("pdfjs.disabled", True)
+    options.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/pdf")
+    options.set_preference("browser.download.manager.showWhenStarting", False)
 
     geckodriver = geckodriver if geckodriver else "geckodriver"
-    driver = webdriver.Firefox(fp, options=options, executable_path=geckodriver)
+    service = Service(executable_path=geckodriver)
+
+    driver = webdriver.Firefox(options=options, service=service)
     return driver
