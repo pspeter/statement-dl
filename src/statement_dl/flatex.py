@@ -189,11 +189,7 @@ def _download_pdfs(
     # but 3 seconds should be enough to start the download
     driver.set_page_load_timeout(3)
 
-    rows = driver.find_elements(By.XPATH, f'//table[@class="Data"]/tbody/tr')
-    num_files = len(rows)
-    max_loaded_files = 100
-
-    while num_files == max_loaded_files:
+    while _check_if_max_documents_displayed(driver):
         # only 100 files are displayed at most, so we need to do some manual
         # paging using the date filters
         print("More than 100 files, paging through results")
@@ -210,6 +206,13 @@ def _download_pdfs(
         num_files = len(rows)
 
     _download_current_pdfs(driver, download_path, dest, all_files, keep_filenames, sub_dirs, tld)
+
+
+def _check_if_max_documents_displayed(driver: webdriver.Firefox) -> bool:
+    max_documents_displayed_txt = 'Es werden nur die ersten 100 Dokumente dargestellt.'
+    max_documents_elems = driver.find_elements(By.XPATH, f'//div[text()="{max_documents_displayed_txt}"]')
+    are_max_documents_displayed = len(max_documents_elems) != 0
+    return are_max_documents_displayed
 
 
 def _set_download_filter(
