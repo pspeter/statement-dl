@@ -1,0 +1,40 @@
+[project]
+name = "statement-dl"
+version = "2023.07.1"
+description = "Automatic download of banking/broker documents from flatex"
+authors = [
+    {name = "Peter Schmidbauer", email = "pypi@schmidbauer.com"},
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "selenium==4.*",
+]
+classifiers = [
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/pspeter/statement-dl"
+
+[project.scripts]
+statement_dl = "statement_dl:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/statement_dl"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src/statement_dl",
+    "README.md",
+    "LICENSE",
+]
