@@ -1,3 +1,4 @@
+import shutil
 from datetime import date, datetime
 from typing import Optional
 
@@ -23,7 +24,7 @@ def get_driver(
     options.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/pdf")
     options.set_preference("browser.download.manager.showWhenStarting", False)
 
-    geckodriver = geckodriver if geckodriver else "geckodriver"
+    geckodriver = geckodriver if geckodriver else shutil.which("geckodriver")
     service = Service(executable_path=geckodriver)
 
     driver = webdriver.Firefox(options=options, service=service)
